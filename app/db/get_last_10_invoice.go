@@ -22,7 +22,7 @@ type Last10InvoiceCommand struct {
 func (cmd *Last10InvoiceCommand) GetCommandDefinition() commands.CommandDefinition {
 	return commands.CommandDefinition{
 		Name:        "getlast10invoice",
-		Description: "Get an invoice info by id",
+		Description: "Get 10 latest invoices",
 		Usage:       "",
 	}
 }
