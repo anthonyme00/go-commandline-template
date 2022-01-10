@@ -2,6 +2,8 @@ package test
 
 import (
 	"cltest/commands"
+	"cltest/repository"
+	"cltest/utils"
 	"flag"
 	"fmt"
 )
@@ -34,7 +36,9 @@ func (cmd *HelloWorld) Init() {
 	flag.Parse()
 }
 
-func (cmd *HelloWorld) Execute() {
+func (cmd *HelloWorld) Execute(utils *utils.Utility, repo *repository.Repository) {
 	fmt.Println("Message : " + cmd.config.Message)
 	fmt.Println("TestInt : " + fmt.Sprintf("%d", cmd.config.TestInt))
+
+	utils.Logger.LogMessage("I was here!")
 }

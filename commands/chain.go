@@ -1,6 +1,9 @@
 package commands
 
 import (
+	"cltest/repository"
+	"cltest/repository/sql"
+	"cltest/utils"
 	"fmt"
 	"os"
 )
@@ -19,7 +22,7 @@ func (c *Chain) Group(name, description string) *Group {
 	grp := &Group{
 		name:        name,
 		description: description,
-		commands:    make([]Command, 0),
+		commands:    make([]ICommand, 0),
 	}
 	c.Groups = append(c.Groups, grp)
 	return grp
@@ -28,10 +31,10 @@ func (c *Chain) Group(name, description string) *Group {
 type Group struct {
 	name        string
 	description string
-	commands    []Command
+	commands    []ICommand
 }
 
-func (g *Group) AddCommand(command Command) {
+func (g *Group) AddCommand(command ICommand) {
 	g.commands = append(g.commands, command)
 }
 
@@ -39,10 +42,10 @@ func (c *Chain) Execute() {
 	printAvailableCommands := func() {
 		for _, group := range c.Groups {
 			fmt.Printf("group [%s]:\n", group.name)
-			fmt.Printf("\t%s\n", group.description)
+			fmt.Printf("%s\n  ", group.description)
 			for _, command := range group.commands {
 				usageString := fmt.Sprintf("%s %s %s", group.name, command.GetCommandDefinition().Name, command.GetCommandDefinition().Usage)
-				fmt.Printf("\tcommand [%s] : \n\tDescription : %s\n\tUsage : %s\n", command.GetCommandDefinition().Name, command.GetCommandDefinition().Description, usageString)
+				fmt.Printf("\tcommand [%s] : \n\t  Description : %s\n\t  Usage : %s\n", command.GetCommandDefinition().Name, command.GetCommandDefinition().Description, usageString)
 			}
 		}
 	}
@@ -63,8 +66,19 @@ func (c *Chain) Execute() {
 		if grp.name == group {
 			for _, command := range grp.commands {
 				if command.GetCommandDefinition().Name == cmd {
+					utility := utils.NewUtility(grp.name + "." + cmd)
+					defer utility.Clean()
+
+					sql, err := sql.NewMySQLRepository()
+					if err != nil {
+						utility.Logger.LogErrorMessage(err, "Failed to create MySQL repository")
+						return
+					}
+					repo := repository.NewRepository(sql)
+					defer repo.Clean()
+
 					command.Init()
-					command.Execute()
+					command.Execute(utility, repo)
 					return
 				}
 			}

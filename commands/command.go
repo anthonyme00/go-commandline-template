@@ -1,13 +1,18 @@
 package commands
 
+import (
+	"cltest/repository"
+	"cltest/utils"
+)
+
 type CommandDefinition struct {
 	Name        string
 	Description string
 	Usage       string
 }
 
-type Command interface {
+type ICommand interface {
 	GetCommandDefinition() CommandDefinition
 	Init()
-	Execute()
+	Execute(util *utils.Utility, repo *repository.Repository)
 }

@@ -1,29 +1,15 @@
 package configs
 
 import (
+	"os"
+	"reflect"
 	"sync"
 
 	"github.com/subosito/gotenv"
 )
 
-// DB_HOST = localhost
-// DB_NAME = db
-// DB_PORT = 3306
-// DB_USER = USERNAME
-// DB_PASS = PASSWORD
-
-// MONGO_HOST = localhost
-// MONGO_PORT = 27017
-// MONGO_DB = DB
-// MONGO_COLLECTION = COLLECTION
-
-// ELASTIC_HOST = localhost
-// ELASTIC_PORT = 39200
-// ELASTIC_SCHEME = https
-// ELASTIC_USERNAME = USERNAME
-// ELASTIC_PASSWORD = PASSWORD
-// ELASTIC_INDEX = INDEX
-// ELASTIC_TYPE = TYPE
+// GlobalConfig is the global configuration for the application.
+// All fields are string only
 type GlobalConfig struct {
 	PROJECT_PATH string
 
@@ -56,5 +42,18 @@ func Init() {
 		Global = GlobalConfig{
 			PROJECT_PATH: "./",
 		}
+		LoadFromEnv()
 	})
+}
+
+func LoadFromEnv() {
+	numField := reflect.TypeOf(Global).NumField()
+
+	for i := 0; i < numField; i++ {
+		field := reflect.TypeOf(Global).Field(i)
+		env := field.Tag.Get("env")
+		if env != "" {
+			reflect.ValueOf(&Global).Elem().Field(i).SetString(os.Getenv(env))
+		}
+	}
 }
